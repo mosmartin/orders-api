@@ -1,4 +1,4 @@
-package orders
+package order
 
 import (
 	"context"
@@ -67,7 +67,7 @@ func (r *RedisRepository) List(ctx context.Context, page FindAllPage) (FindResul
 	}, nil
 }
 
-func (r *RedisRepository) Insert(ctx context.Context, order model.Order) error {
+func (r *RedisRepository) Create(ctx context.Context, order model.Order) error {
 	data, err := json.Marshal(order)
 	if err != nil {
 		slog.Error("failed to encode order", err)
