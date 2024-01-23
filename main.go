@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
+	"os/signal"
 
 	"github.com/mosmartin/orders-api/app"
 )
@@ -11,7 +13,10 @@ import (
 func main() {
 	a := app.New()
 
-	err := a.Start(context.TODO())
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+
+	err := a.Start(ctx)
 	if err != nil {
 		slog.Error(err.Error())
 		fmt.Println("failed to start the app:", err)

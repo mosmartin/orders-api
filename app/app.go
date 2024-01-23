@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -34,12 +35,35 @@ func (a *App) Start(ctx context.Context) error {
 		return fmt.Errorf("error connecting to redis: %w", err)
 	}
 
-	slog.Info(".. 🚀 starting server on port 8080")
+	defer func() {
+		if err := a.rdb.Close(); err != nil {
+			slog.Error("failed to close redis", err)
+		}
+	}()
 
-	err = server.ListenAndServe()
-	if err != nil {
-		return fmt.Errorf("error starting server: %w", err)
+	slog.Info("... 🚀 starting server on port 8080")
+
+	ch := make(chan error, 1)
+
+	go func() {
+		err = server.ListenAndServe()
+		if err != nil {
+			ch <- fmt.Errorf("error starting server: %w", err)
+		}
+
+		close(ch)
+	}()
+
+	select {
+	case err := <-ch:
+		return err
+	case <-ctx.Done():
+		slog.Info("... 🛑 shutting down server")
+
+		timeout, cancel := context.WithTimeout(context.Background(), time.Second*10)
+		defer cancel()
+
+		return server.Shutdown(timeout)
 	}
 
-	return nil
 }
