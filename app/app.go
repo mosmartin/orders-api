@@ -58,12 +58,11 @@ func (a *App) Start(ctx context.Context) error {
 	case err := <-ch:
 		return err
 	case <-ctx.Done():
-		slog.Info("... 🛑 shutting down server")
+		slog.Info("... 🛑 gracefully shutting down server")
 
 		timeout, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
 
 		return server.Shutdown(timeout)
 	}
-
 }
