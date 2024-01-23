@@ -1,25 +1,19 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log/slog"
-	"net/http"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/mosmartin/orders-api/app"
 )
 
 func main() {
-	r := chi.NewRouter()
-	
-	r.Use(middleware.Logger)
+	a := app.New()
 
-	r.Get("/hello", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello World"))
-	})
-
-	err := http.ListenAndServe(":8080", r)
+	err := a.Start(context.TODO())
 	if err != nil {
-		slog.Error("Error starting server", err)
-		panic(err)
+		slog.Error(err.Error())
+		fmt.Println("failed to start the app:", err)
 	}
 }
